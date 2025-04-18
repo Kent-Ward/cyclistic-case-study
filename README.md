@@ -1,6 +1,6 @@
 # 🚲 Cyclistic Rider Behavior Analysis – Marketing Insights
 
-Welcome! This case study explores Cyclistic's bike share data to help uncover how **casual riders and annual members** use the service differently — and how data can drive smarter marketing strategies.
+Welcome! This case study explores Cyclistic's bike share data to help uncover how **casual riders and annual members** use the service differently, and how data can drive smarter marketing strategies.
 
 ## 🧠 Objective
 Help the Cyclistic marketing team **convert casual riders into annual members** using behavioral insights from real-world ride data.
