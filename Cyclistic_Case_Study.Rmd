@@ -1,0 +1,245 @@
+---
+title: "Cyclistic Case Study"
+author: "Kent Ward"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: '2'
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: false
+    theme: readable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(skimr)
+library(readxl)
+library(dplyr)
+library(scales)
+library(patchwork)
+library(viridis)
+```
+
+# 1. Load the Required Libraries
+
+These packages will help with data import, manipulation, and visualization.
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(skimr)
+library(readxl)
+library(dplyr)
+library(scales)
+library(patchwork)
+library(viridis)
+```
+
+
+
+# 2. Import Data
+
+We import the 2019 and 2020 Q1 bike trip datasets directly from the local `raw_data` folder.
+
+```{r}
+all_trips_2019 <- read_excel("raw_data/Raw_Divvy_Trips_2019_Q1.xlsx")
+all_trips_2020 <- read_excel("raw_data/Raw_Divvy_Trips_2020_Q1.xlsx")
+```
+
+# 3. Inspect the Structure of Both Datasets
+
+Before cleaning, we review data types and contents.
+
+```{r}
+datasets <- list("2019" = all_trips_2019, "2020" = all_trips_2020)
+lapply(datasets, str)
+lapply(datasets, skim)
+lapply(datasets, summary)
+```
+
+# 4. Clean and Standardize Column Formats
+
+We trim whitespace and convert all character data to lowercase for consistency.
+
+```{r}
+datasets <- lapply(datasets, function(df) {
+  df %>% mutate(across(where(is.character), ~ trimws(tolower(.))))
+})
+```
+
+# 5. Rename Columns for 2019 Dataset
+
+This ensures both datasets have the same structure before merging.
+
+```{r}
+datasets[["2019"]] <- datasets[["2019"]] %>%
+  rename(
+    ride_id = trip_id,
+    rideable_type = bikeid,
+    started_at = start_time,
+    ended_at = end_time,
+    start_station_name = from_station_name,
+    start_station_id = from_station_id,
+    end_station_name = to_station_name,
+    end_station_id = to_station_id,
+    member_casual = usertype
+  )
+```
+
+# 6. Standardize Data Types
+
+Convert ride_id and rideable_type to characters in 2019 so they match 2020.
+
+```{r}
+datasets[["2019"]] <- datasets[["2019"]] %>%
+  mutate(
+    ride_id = as.character(ride_id),
+    rideable_type = as.character(rideable_type)
+  )
+```
+
+# 7. Combine the Two Datasets
+
+```{r}
+all_trips <- bind_rows(datasets[["2019"]], datasets[["2020"]])
+```
+
+# 8. Drop Unnecessary Columns
+
+Remove irrelevant or inconsistent fields across years.
+
+```{r}
+all_trips <- all_trips %>% 
+  select(-c(start_lat, start_lng, end_lat, end_lng, birthyear, gender, tripduration))
+```
+
+# 9. Recode Membership Types
+
+Standardize `subscriber` as `member` and `customer` as `casual`.
+
+```{r}
+all_trips <- all_trips %>%
+  mutate(member_casual = recode(member_casual, "subscriber" = "member", "customer" = "casual"))
+```
+
+# 10. Add Time Columns
+
+Break the datetime into components for better grouping later.
+
+```{r}
+all_trips <- all_trips %>%
+  mutate(
+    date = as.Date(started_at),
+    month = format(date, "%m"),
+    day = format(date, "%d"),
+    year = format(date, "%Y"),
+    day_of_week = wday(started_at, label = TRUE, abbr = FALSE)
+  )
+```
+
+# 11. Calculate Ride Length in Seconds
+
+```{r}
+all_trips$ride_length <- as.numeric(difftime(all_trips$ended_at, all_trips$started_at, units = "secs"))
+```
+
+# 12. Remove Bad or Invalid Data
+
+Filter out rides with negative time or system test locations like "HQ QR".
+
+```{r}
+all_trips_v2 <- all_trips[!(all_trips$start_station_name == "hq qr" | all_trips$ride_length < 0),]
+```
+
+# 13. Descriptive Summary
+
+```{r}
+summary(select(all_trips_v2, ride_length))
+```
+
+# 14. Compare Ride Length by Member Type
+
+Use both aggregate and `dplyr` summary for clean outputs.
+
+```{r}
+ride_summary_overall <- all_trips_v2 %>%
+  group_by(member_casual) %>%
+  summarise(
+    `Average Ride (min)` = round(mean(ride_length, na.rm = TRUE), 0),
+    `Median Ride (min)` = round(median(ride_length, na.rm = TRUE), 0),
+    `Max Ride (min)` = round(max(ride_length, na.rm = TRUE), 0),
+    `Min Ride (min)` = round(min(ride_length, na.rm = TRUE), 0)
+  )
+ride_summary_overall
+```
+
+# 15. Weekly Usage and Ride Behavior
+
+```{r}
+# Create new column for weekday, then summarize ride count and average duration
+weekly_usage <- all_trips_v2 %>%
+  mutate(weekday = wday(started_at, label = TRUE, abbr = FALSE)) %>%
+  group_by(member_casual, weekday) %>%
+  summarise(
+    number_of_rides = n(),
+    average_duration = round(mean(ride_length, na.rm = TRUE), 0),
+    .groups = "drop"
+  ) %>%
+  arrange(member_casual, weekday)
+```
+
+# 16. Visualize: Rides and Duration by Day
+
+```{r}
+# Plot: Average Number of Rides
+plot_rides <- ggplot(weekly_usage, aes(x = weekday, y = number_of_rides, fill = member_casual)) +
+  geom_col(position = "dodge") +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Ride Count by Day",
+    x = "Day of the Week",
+    y = "Number of Rides",
+    fill = "Rider Type"
+  ) +
+  scale_y_continuous(labels = comma) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+# Plot: Average Ride Duration
+plot_duration <- ggplot(weekly_usage, aes(x = weekday, y = average_duration, fill = member_casual)) +
+  geom_col(position = "dodge") +
+  scale_fill_viridis_d(option = "plasma", begin = 0.2, end = 0.9) +
+  labs(
+    title = "Avg. Ride Duration",
+    x = "Day of the Week",
+    y = "Duration (seconds)",
+    fill = "Rider Type"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+#Combined plots 
+```{r}
+combined_plot <- (plot_rides + plot_duration) +
+  plot_layout(widths = c(1, 1), guides = "collect") +
+  plot_annotation(title = "Ride Count & Duration by Rider Type") &
+  theme(legend.position = "bottom")
+
+combined_plot
+```
+
+# 17. Save Plot for Presentation
+
+```{r}
+ggsave("ride_usage_combined.png", plot = combined_plot, width = 10, height = 6, dpi = 300)
+
+ggsave("ride_count_by_day.png", plot = plot_rides, width = 8, height = 5, dpi = 300)
+
+ggsave("avg_ride_duration.png", plot = plot_duration, width = 8, height = 5, dpi = 300)
+```
