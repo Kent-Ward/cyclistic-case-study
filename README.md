@@ -27,8 +27,9 @@ Help the Cyclistic marketing team **convert casual riders into annual members** 
 |--------------------------------|--------------------------------------------------|
 | 📄 [Stakeholder Summary (PDF)](link)      | 1-page executive-ready summary               |
 | 📊 [Visual Charts (ZIP)](link)             | Ride count, duration, and combined visuals   |
-| 🎥 [Presentation Slide Deck (PDF)](link)   | Designed to communicate with stakeholders    |
+| 🎥 [Presentation Slide Deck (PowerPoint)](link) | Final stakeholder-ready presentation |
 | 💻 [Analysis Code (.Rmd)](link)           | Full cleaned and documented R Markdown file  |
+
 
 ## 📬 Contact
 **Kent Ward**  
