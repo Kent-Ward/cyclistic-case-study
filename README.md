@@ -23,12 +23,12 @@ Help the Cyclistic marketing team **convert casual riders into annual members** 
 
 ## 📁 Project Files
 
-| Resource                        | Description                                      |
-|--------------------------------|--------------------------------------------------|
-| 📄 [Stakeholder Summary (PDF)](link)      | 1-page executive-ready summary               |
-| 📊 [Visual Charts (ZIP)](link)             | Ride count, duration, and combined visuals   |
-| 🎥 [Presentation Slide Deck (PowerPoint)](link) | Final stakeholder-ready presentation |
-| 💻 [Analysis Code (.Rmd)](link)           | Full cleaned and documented R Markdown file  |
+| Resource                                | Description                                      |
+|----------------------------------------|--------------------------------------------------|
+| 📄 [Stakeholder Summary (PDF)](https://github.com/Kent-Ward/cyclistic-case-study/raw/main/Cyclistic_Stakeholder_Summary.pdf) | 1-page executive-ready summary |
+| 📊 [Visual Charts (ZIP)](https://github.com/Kent-Ward/cyclistic-case-study/raw/main/Cyclistic_Visuals.zip) | Ride count, duration, and combined visuals |
+| 🎥 [Presentation Slide Deck (PowerPoint)](https://github.com/Kent-Ward/cyclistic-case-study/raw/main/Cyclistic%20Rider%20Trends%20(1).pptx) | Final stakeholder-ready presentation |
+| 💻 [Analysis Code (.Rmd)](https://github.com/Kent-Ward/cyclistic-case-study/raw/main/Cyclistic_Case_Study.Rmd) | Full cleaned and documented R Markdown file |
 
 
 ## 📬 Contact
