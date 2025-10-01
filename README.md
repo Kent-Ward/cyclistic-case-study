@@ -31,10 +31,6 @@ Help the Cyclistic marketing team **convert casual riders into annual members** 
 | [Analysis Code (.Rmd)](https://github.com/Kent-Ward/cyclistic-case-study/raw/main/Cyclistic_Case_Study.Rmd) | Full cleaned and documented R Markdown file |
 
 
-## Contact
-**Kent Ward**  
-kent.ward@khembroward.com  
-
 
 ---
 > *Built with R. Designed for stakeholders. Backed by data.*
